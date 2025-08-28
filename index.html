@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Préstamos - Dashboard</title>
+    <meta name="description" content="Gestor de préstamos PWA.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <style>
+        /* Paleta de colores personalizable: Gris y Negro */
+        :root {
+            --primary: #4a4a4a; /* Gris oscuro para elementos principales */
+            --primary-light: #e0e0e0; /* Gris muy claro para fondos sutiles */
+            --secondary: #616161; /* Gris medio para texto secundario */
+            --success: #4CAF50; /* Verde para éxito (clásico) */
+            --error: #f44336; /* Rojo para errores (clásico) */
+            --bg-color: #f0f0f0; /* Fondo general gris claro */
+            --card-bg: #ffffff; /* Fondo blanco para las tarjetas */
+            --text-color: #212121; /* Texto principal casi negro */
+            --muted-text: #757575; /* Texto secundario gris */
+            --border-color: #bdbdbd; /* Bordes suaves */
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --shadow: 0 6px 12px rgba(0, 0, 0, 0.25); /* Sombra más pronunciada */
+            --border-radius: 8px;
+        }
+
+        /* Estilos generales */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+
+        p {
+            color: var(--muted-text);
+        }
+        
+        main {
+            display: grid;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            main {
+                grid-template-columns: 2fr 1fr;
+            }
+            .loans-section, .routes-section {
+                grid-column: span 1;
+            }
+            .dashboard-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .section {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: var(--text-color);
+        }
+        
+        h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .form-grid.cols-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            color: var(--secondary);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1em;
+            width: 100%;
+        }
+
+        .btn {
+            padding: 12px 20px; /* Más padding para efecto 3D */
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out; /* Transición para el efecto 3D */
+            text-align: center;
+            color: #fff;
+            background: var(--primary);
+            box-shadow: 0 4px 0 0 darken(var(--primary), 15%); /* Sombra para efecto 3D */
+            position: relative;
+            top: 0;
+            left: 0;
+        }
+        
+        .btn:active {
+            top: 2px;
+            box-shadow: 0 2px 0 0 darken(var(--primary), 15%);
+        }
+
+        .btn.ghost {
+            background: none;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            box-shadow: none; /* Los botones ghost no necesitan efecto 3D */
+        }
+
+        .btn.ghost:active {
+            top: 0;
+            box-shadow: none;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9em;
+        }
+
+        th {
+            background-color: var(--bg-color);
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .small {
+            font-size: 0.9em;
+        }
+        
+        .muted-small {
+            font-size: 0.8em;
+            color: var(--muted-text);
+        }
+
+        .route {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer; /* Añadir cursor pointer para indicar que es clickable */
+        }
+        
+        .route:hover {
+            background-color: var(--primary-light); /* Resaltar al pasar el ratón */
+        }
+
+        .route img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+
+        .route .meta {
+            flex-grow: 1;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .stat {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: 5px;
+        }
+        
+        .dashboard-stats {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: 1fr;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 600px) {
+            .dashboard-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (min-width: 900px) {
+            .dashboard-stats {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .btn-recibo, .btn-wa {
+            background: var(--success);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-size: 0.8em;
+            box-shadow: 0 3px 0 0 darken(var(--success), 15%);
+            position: relative;
+            top: 0;
+        }
+        .btn-recibo:active, .btn-wa:active {
+            top: 1px;
+            box-shadow: 0 1px 0 0 darken(var(--success), 15%);
+        }
+        
+        .btn-wa { background: #25d366; box-shadow: 0 3px 0 0 darken(#25d366, 15%); }
+        .btn-wa:active { top: 1px; box-shadow: 0 1px 0 0 darken(#25d366, 15%); }
+
+
+        .btn-cuota { 
+            padding: 8px 10px;
+            font-size: 0.8em;
+            border-radius: 5px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 3px 0 0 darken(var(--primary), 15%);
+            position: relative;
+            top: 0;
+        }
+        
+        .btn-cuota:active {
+            top: 1px;
+            box-shadow: 0 1px 0 0 darken(var(--primary), 15%);
+        }
+
+        .btn-cuota.active {
+            opacity: 0.6;
+        }
+        
+        .table-cuotas th, .table-cuotas td {
+            font-size: 0.8em;
+            padding: 8px;
+        }
+
+        .error { color: var(--error); font-weight: 700; }
+        .success { color: var(--success); font-weight: 700; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7); /* Fondo más oscuro para modal */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .modal-content .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 2em;
+            cursor: pointer;
+            color: var(--muted-text);
+        }
+
+        /* Estilos del Recibo */
+        .recibo-preview {
+            max-width: 300px;
+            margin: auto;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow); /* Sombra también para el recibo */
+        }
+        .recibo-header { text-align: center; }
+        .recibo-header img { width: 60px; height: 60px; margin-bottom: 5px; }
+        .recibo-title { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; }
+        .recibo-footer { margin-top: 20px; font-size: 0.8em; color: var(--muted-text); }
+        .linea-firma { margin-top: 30px; text-align: center; }
+        .linea-firma div { border-top: 1px dashed var(--muted-text); padding-top: 5px; font-size: 0.8em; }
+        
+        .atrasos-rojo {
+            color: var(--error);
+            font-weight: bold;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            .modal-content, .modal-content * { visibility: visible; }
+            .modal-content {
+                position: absolute;
+                left: 0; top: 0;
+                width: 100%;
+                box-shadow: none;
+                padding: 0;
+            }
+            .close-btn, .btn-recibo, .btn-wa {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Gestor de Préstamos</h1>
+            <p>Controla tus rutas y préstamos de forma sencilla.</p>
+        </header>
+
+        <main>
+            <section class="section">
+                <h2>Dashboard</h2>
+                <div class="dashboard-stats">
+                    <div class="card">
+                        <h3>Préstamos Activos</h3>
+                        <div class="stat" id="totalLoans">0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Total General</h3>
+                        <div class="stat" id="totalGeneral">$0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Total en la Calle (Saldo)</h3>
+                        <div class="stat" id="totalOnTheStreet">$0</div>
+                    </div>
+                    <div class="card">
+                        <h3>Total Recaudado</h3>
+                        <div class="stat" id="totalCollected">$0</div>
+                    </div>
+                </div>
+            </section>
+        
+            <section class="section loans-section">
+                <h2>Préstamos</h2>
+                <h3>Crear Nuevo Préstamo</h3>
+                <div class="form-grid cols-2">
+                    <div class="form-group">
+                        <label for="routeSelect">Selecciona Ruta</label>
+                        <select id="routeSelect"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="frecuencia">Frecuencia</label>
+                        <select id="frecuencia">
+                            <option value="DIARIO">Diario</option>
+                            <option value="SEMANAL">Semanal</option>
+                            <option value="QUINCENAL">Quincenal</option>
+                            <option value="MENSUAL">Mensual</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cliente">Nombre del Cliente</label>
+                        <input type="text" id="cliente" placeholder="Ej: Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label for="cedula">Cédula del Cliente (Opcional)</label>
+                        <input type="text" id="cedula" placeholder="Ej: 123456789">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono del Cliente (Opcional)</label>
+                        <input type="text" id="telefono" placeholder="Ej: 3125551234">
+                    </div>
+                    <div class="form-group">
+                        <label for="direccion">Dirección del Cliente (Opcional)</label>
+                        <input type="text" id="direccion" placeholder="Ej: Calle 10 #20-30">
+                    </div>
+                    <div class="form-group">
+                        <label for="monto">Monto Prestado ($)</label>
+                        <input type="number" id="monto" placeholder="Ej: 100000">
+                    </div>
+                    <div class="form-group">
+                        <label for="interes">Interés (%)</label>
+                        <input type="number" id="interes" value="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="cuotas"># de Cuotas</label>
+                        <input type="number" id="cuotas" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="startDateInput">Fecha de Inicio</label>
+                        <input type="date" id="startDateInput">
+                    </div>
+                    <div class="form-group">
+                        <label for="firstPaymentDateInput">Fecha de Primera Cuota</label>
+                        <input type="date" id="firstPaymentDateInput">
+                    </div>
+                </div>
+                <button class="btn" id="btnAddLoan">Crear Préstamo</button>
+
+                <hr style="margin: 20px 0;">
+                
+                <h3>Préstamos de la Ruta <span id="selRouteName"></span></h3>
+                <div class="muted-small" id="selRouteSum"></div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Ruta</th>
+                                <th>Total</th>
+                                <th>Cuotas</th>
+                                <th>Saldo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loansTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="section routes-section">
+                <h2>Rutas</h2>
+                <h3>Crear Nueva Ruta</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="routeName">Nombre de la Ruta</label>
+                        <input type="text" id="routeName" placeholder="Ej: Centro">
+                    </div>
+                    <div class="form-group">
+                        <label>Logo de la Ruta</label>
+                        <input type="file" id="routeLogoFile" accept="image/*">
+                        <input type="text" id="routeLogoURL" placeholder="O URL de la imagen">
+                    </div>
+                </div>
+                <button class="btn" id="btnAddRoute">Crear Ruta</button>
+
+                <hr style="margin: 20px 0;">
+
+                <h3>Lista de Rutas</h3>
+                <div id="routesList"></div>
+            </section>
+
+            <section class="section">
+                <h2>Próximos Cobros</h2>
+                <h3>Cobros para hoy</h3>
+                <div id="todayCollections"></div>
+            </section>
+        </main>
+        
+        <footer style="text-align: center; padding: 20px; font-size: 0.8em; color: var(--muted-text);">
+            <div class="btn-group" style="justify-content: center;">
+                <button class="btn ghost" id="btnExport">Exportar Datos</button>
+                <button class="btn ghost" id="btnImport">Importar Datos</button>
+                <input type="file" id="importFile" style="display: none;">
+                <button class="btn" style="background:var(--error)" id="btnResetRoutes">Resetear Todo</button>
+            </div>
+            <p>Desarrollado con ❤️</p>
+        </footer>
+    </div>
+    
+    <div id="modalPlan" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('modalPlan')">&times;</span>
+            <h2 id="planMeta"></h2>
+            <div id="planSummary"></div>
+            <div id="planTableWrap"></div>
+        </div>
+    </div>
+    
+    <div id="modalRecibo" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('modalRecibo')">&times;</span>
+            <div id="reciboBody"></div>
+        </div>
+    </div>
+
+    <script src="script.js?v=5"></script>
+</body>
+</html>
